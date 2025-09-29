@@ -400,7 +400,7 @@ namespace Oxide.Patcher.Views
 			this.beforesplit.Name = "beforesplit";
 			this.beforesplit.Orientation = System.Windows.Forms.Orientation.Horizontal;
 			this.beforesplit.Size = new System.Drawing.Size(609, 137);
-			this.beforesplit.SplitterDistance = 61;
+			this.beforesplit.SplitterDistance = 70;
 			this.beforesplit.TabIndex = 0;
 			// 
 			// aftersplit
