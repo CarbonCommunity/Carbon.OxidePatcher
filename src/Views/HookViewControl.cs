@@ -143,21 +143,17 @@ namespace Oxide.Patcher.Views
         {
             if (_methodDef == null)
             {
-                beforetab.Controls.Add(new Label
+                var missingLabel = new Label
                 {
                     Dock = DockStyle.Fill,
                     AutoSize = false,
                     Text = "METHOD MISSING",
                     TextAlign = ContentAlignment.MiddleCenter
-                });
-
-                aftertab.Controls.Add(new Label
-                {
-                    Dock = DockStyle.Fill,
-                    AutoSize = false,
-                    Text = "METHOD MISSING",
-                    TextAlign = ContentAlignment.MiddleCenter
-                });
+                };
+                beforesplit.Panel1.Controls.Add(missingLabel);
+                beforesplit.Panel2.Controls.Add(missingLabel);
+                aftersplit.Panel1.Controls.Add(missingLabel);
+                aftersplit.Panel2.Controls.Add(missingLabel);
 
                 _loaded = true;
                 return;
@@ -168,7 +164,6 @@ namespace Oxide.Patcher.Views
             Hook.PreparePatch(_methodDef, weaver);
 
             _msilBefore = new TextEditorControl { Dock = DockStyle.Fill, Text = weaver.ToString(), IsReadOnly = true };
-
             _codeBefore = new TextEditorControl
             {
                 Dock = DockStyle.Fill,
@@ -190,10 +185,10 @@ namespace Oxide.Patcher.Views
                 IsReadOnly = true
             };
 
-            beforetab.Controls.Add(_msilBefore);
-            aftertab.Controls.Add(_msilAfter);
-            codebeforetab.Controls.Add(_codeBefore);
-            codeaftertab.Controls.Add(_codeAfter);
+            beforesplit.Panel1.Controls.Add(_msilBefore);
+            beforesplit.Panel2.Controls.Add(_codeBefore);
+            aftersplit.Panel1.Controls.Add(_msilAfter);
+            aftersplit.Panel2.Controls.Add(_codeAfter);
 
             _msilHighlight = new HighlightGroup(_msilAfter);
 
