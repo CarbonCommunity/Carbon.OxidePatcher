@@ -145,6 +145,8 @@ namespace Oxide.Patcher
             Settings.FormSize = Size;
             Settings.WindowState = WindowState;
             Settings.Save();
+
+            Process.GetCurrentProcess().Kill();
         }
 
         #region Menu Handlers
