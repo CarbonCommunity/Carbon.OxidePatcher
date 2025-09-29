@@ -239,6 +239,16 @@ namespace Oxide.Patcher.Views
                     var sv = source.ActiveTextAreaControl.VScrollBar;
                     var tv = target.ActiveTextAreaControl.VScrollBar;
                     var value = Math.Max(tv.Minimum, Math.Min(sv.Value, tv.Maximum - tv.LargeChange + 1));
+
+                    if (value > tv.Maximum)
+                    {
+                        value = tv.Maximum;
+                    }
+                    if (value < tv.Minimum)
+                    {
+                        value = tv.Minimum;
+                    }
+
                     tv.Value = value;
                     target.ActiveTextAreaControl.TextArea.Invalidate();
                 }
