@@ -174,9 +174,9 @@ namespace Oxide.Patcher.Views
 
             Hook.ApplyPatch(_methodDef, weaver);
 
-            string afterText = weaver.ToString();
+            string msilAfterText = weaver.ToString();
 
-            _msilAfter = new TextEditorControl { Dock = DockStyle.Fill, Text = afterText, IsReadOnly = true };
+            _msilAfter = new TextEditorControl { Dock = DockStyle.Fill, Text = msilAfterText, IsReadOnly = true };
             _codeAfter = new TextEditorControl
             {
                 Dock = DockStyle.Fill,
@@ -207,17 +207,49 @@ namespace Oxide.Patcher.Views
                 }
                 catch { }
             };
+
             beforesplit.Panel1.Controls.Add(_msilBefore);
             beforesplit.Panel2.Controls.Add(_codeBefore);
             aftersplit.Panel1.Controls.Add(_msilAfter);
             aftersplit.Panel2.Controls.Add(_codeAfter);
 
+            WireScrollSync(_msilBefore, _msilAfter);
+            WireScrollSync(_msilAfter, _msilBefore);
+            WireScrollSync(_codeBefore, _codeAfter);
+            WireScrollSync(_codeAfter, _codeBefore);
+
             _msilHighlight = new HighlightGroup(_msilAfter);
 
-            AddHighlight(afterText);
+            AddMsilHighlight(msilAfterText);
         }
 
-        private void AddHighlight(string afterText)
+        private bool _syncing;
+
+        private void WireScrollSync(TextEditorControl source, TextEditorControl target)
+        {
+            source.ActiveTextAreaControl.VScrollBar.ValueChanged += (s, e) =>
+            {
+                if (_syncing)
+                {
+                    return;
+                }
+                _syncing = true;
+                try
+                {
+                    var sv = source.ActiveTextAreaControl.VScrollBar;
+                    var tv = target.ActiveTextAreaControl.VScrollBar;
+                    var value = Math.Max(tv.Minimum, Math.Min(sv.Value, tv.Maximum - tv.LargeChange + 1));
+                    tv.Value = value;
+                    target.ActiveTextAreaControl.TextArea.Invalidate();
+                }
+                finally
+                {
+                    _syncing = false;
+                }
+            };
+        }
+
+        private void AddMsilHighlight(string afterText)
         {
             int searchIndex = afterText.IndexOf($"\"{Hook.HookName}\"");
             if (searchIndex == -1)
@@ -362,7 +394,7 @@ namespace Oxide.Patcher.Views
                 _msilAfter.Text = afterText;
                 _codeAfter.Text = await Decompiler.GetSourceCode(_methodDef, weaver);
 
-                AddHighlight(afterText);
+                AddMsilHighlight(afterText);
             }
 
             applybutton.Enabled = false;
