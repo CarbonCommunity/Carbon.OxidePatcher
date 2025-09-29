@@ -200,7 +200,7 @@ namespace Oxide.Patcher
         /// <param name="e"></param>
         private void exit_Click(object sender, EventArgs e)
         {
-            Application.Exit();
+            OnFormClosing(null);
         }
 
         #endregion Menu Handlers
