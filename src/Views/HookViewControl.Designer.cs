@@ -398,8 +398,9 @@ namespace Oxide.Patcher.Views
 			this.beforesplit.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.beforesplit.Location = new System.Drawing.Point(3, 3);
 			this.beforesplit.Name = "beforesplit";
+			this.beforesplit.Orientation = System.Windows.Forms.Orientation.Horizontal;
 			this.beforesplit.Size = new System.Drawing.Size(609, 137);
-			this.beforesplit.SplitterDistance = 211;
+			this.beforesplit.SplitterDistance = 61;
 			this.beforesplit.TabIndex = 0;
 			// 
 			// aftersplit
@@ -407,8 +408,9 @@ namespace Oxide.Patcher.Views
 			this.aftersplit.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.aftersplit.Location = new System.Drawing.Point(3, 3);
 			this.aftersplit.Name = "aftersplit";
+			this.aftersplit.Orientation = System.Windows.Forms.Orientation.Horizontal;
 			this.aftersplit.Size = new System.Drawing.Size(609, 137);
-			this.aftersplit.SplitterDistance = 210;
+			this.aftersplit.SplitterDistance = 70;
 			this.aftersplit.TabIndex = 0;
 			// 
 			// HookViewControl

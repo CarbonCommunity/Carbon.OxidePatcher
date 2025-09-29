@@ -185,6 +185,28 @@ namespace Oxide.Patcher.Views
                 IsReadOnly = true
             };
 
+            beforesplit.SplitterMoved += (sender, e) =>
+            {
+                try
+                {
+                    if (beforesplit.SplitterDistance != aftersplit.SplitterDistance)
+                    {
+                        aftersplit.SplitterDistance = beforesplit.SplitterDistance;
+                    }
+                }
+                catch { }
+            };
+            aftersplit.SplitterMoved += (sender, e) =>
+            {
+                try
+                {
+                    if (aftersplit.SplitterDistance != beforesplit.SplitterDistance)
+                    {
+                        beforesplit.SplitterDistance = aftersplit.SplitterDistance;
+                    }
+                }
+                catch { }
+            };
             beforesplit.Panel1.Controls.Add(_msilBefore);
             beforesplit.Panel2.Controls.Add(_codeBefore);
             aftersplit.Panel1.Controls.Add(_msilAfter);
