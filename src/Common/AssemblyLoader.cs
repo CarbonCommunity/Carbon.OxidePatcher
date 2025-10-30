@@ -23,7 +23,7 @@ namespace Oxide.Patcher.Common
 
         private IAssemblyResolver _resolver;
 
-        public AssemblyLoader(Project project, string opjPath, bool skipOriginal = false)
+        public AssemblyLoader(Project project, string opjPath, bool skipOriginal = true)
         {
             _project = project;
             _opjPath = opjPath;
@@ -193,19 +193,7 @@ namespace Oxide.Patcher.Common
                 return assdef;
             }
 
-            string file = $"{Path.GetFileNameWithoutExtension(name)}_Original{Path.GetExtension(name)}";
-            string filename = Path.Combine(_project.TargetDirectory, file);
-            if (!File.Exists(filename))
-            {
-                string oldfilename = Path.Combine(_project.TargetDirectory, name);
-                if (!File.Exists(oldfilename))
-                {
-                    return null;
-                }
-
-                filename = CreateOriginal(oldfilename, filename);
-            }
-            assdef = AssemblyDefinition.ReadAssembly(filename, new ReaderParameters { AssemblyResolver = _resolver });
+            assdef = AssemblyDefinition.ReadAssembly(Path.Combine(_project.TargetDirectory, name), new ReaderParameters { AssemblyResolver = _resolver });
             assemblydict.Add(name, assdef);
             rassemblydict.Add(assdef, name);
             return assdef;

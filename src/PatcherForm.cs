@@ -411,13 +411,6 @@ namespace Oxide.Patcher
                 objectview.SelectedNode.SelectedImageKey = "accept.png";
                 objectview.SelectedNode.Nodes.Clear();
 
-                string realfilename = Path.Combine(CurrentProject.TargetDirectory, data.AssemblyName);
-                string origfilename = Path.Combine(CurrentProject.TargetDirectory, Path.GetFileNameWithoutExtension(data.AssemblyName) + "_Original" + Path.GetExtension(data.AssemblyName));
-                if (!File.Exists(origfilename))
-                {
-                    AssemblyLoader.CreateOriginal(realfilename, origfilename);
-                }
-
                 // Populate
                 PopulateAssemblyNode(objectview.SelectedNode, data.Definition);
             }

@@ -12,7 +12,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <Copyright>Copyright (c) 2014-$([System.DateTime]::Now.Year) $(Authors)</Copyright>
     <PackageTags>gaming modding plugins mono msil dotnet</PackageTags>
-    <TargetFramework>net462</TargetFramework>
+    <TargetFramework>net481</TargetFramework>
     <OutputType>WinExe</OutputType>
     <ApplicationIcon>Resources\logo.ico</ApplicationIcon>
     <AppDesignerFolder>Properties</AppDesignerFolder>
