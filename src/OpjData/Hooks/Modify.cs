@@ -639,7 +639,7 @@ namespace Oxide.Patcher.Hooks
             resolver.AddSearchDirectory(targetDir);
 
             string assemblyNameWithoutExtension = Path.GetFileNameWithoutExtension(assemblyName);
-            string assemblyNameWithoutExtensionOriginal = assemblyNameWithoutExtension + "_Original";
+            string assemblyNameWithoutExtensionOriginal = assemblyNameWithoutExtension;
             if (File.Exists(Path.Combine(targetDir, assemblyNameWithoutExtensionOriginal + ".dll")))
             {
                 assemblyNameWithoutExtension = assemblyNameWithoutExtensionOriginal;

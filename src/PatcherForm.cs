@@ -845,14 +845,7 @@ namespace Oxide.Patcher
 
         private bool IsFileOriginal(string filename)
         {
-            string name = Path.GetFileNameWithoutExtension(filename);
-            const string postfix = "_Original";
-            if (name.Length <= postfix.Length)
-            {
-                return false;
-            }
-
-            return name.Substring(name.Length - postfix.Length) == postfix;
+            return true;
         }
 
         #region -Hooks Tree-

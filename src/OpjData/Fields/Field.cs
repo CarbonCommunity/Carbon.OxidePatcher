@@ -80,7 +80,7 @@ namespace Oxide.Patcher.Fields
             string assemblyName =  $"{AssemblyName.Replace(".dll", "")}";
             if (!skipOriginal)
             {
-                assemblyName = $"{AssemblyName.Replace(".dll", "")}_Original";
+                assemblyName = $"{AssemblyName.Replace(".dll", "")}";
             }
 
             string targetAssemblyFile = Path.Combine(project.TargetDirectory, $"{assemblyName}.dll");

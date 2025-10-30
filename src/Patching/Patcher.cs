@@ -61,7 +61,7 @@ namespace Oxide.Patcher.Patching
         {
             if (original)
             {
-                return Path.Combine(PatchProject.TargetDirectory, Path.GetFileNameWithoutExtension(assemblyname) + "_Original" + Path.GetExtension(assemblyname));
+                return Path.Combine(PatchProject.TargetDirectory, Path.GetFileNameWithoutExtension(assemblyname) + Path.GetExtension(assemblyname));
             }
 
             return Path.Combine(PatchProject.TargetDirectory, assemblyname);
@@ -133,8 +133,8 @@ namespace Oxide.Patcher.Patching
                             throw new FileNotFoundException($"Failed to locate target assembly {manifest.AssemblyName}", filename);
                         }
 
-                        File.Copy(filename, Path.GetFileNameWithoutExtension(filename) + "_Original" + Path.GetExtension(filename), true);
-                        filename = Path.GetFileNameWithoutExtension(filename) + "_Original" + Path.GetExtension(filename);
+                        File.Copy(filename, Path.GetFileNameWithoutExtension(filename) + Path.GetExtension(filename), true);
+                        filename = Path.GetFileNameWithoutExtension(filename) + Path.GetExtension(filename);
                     }
                     else
                     {
