@@ -834,6 +834,17 @@ namespace Oxide.Patcher
                 mea = e;
                 tabviewcontextmenu.Show(tabview, e.Location);
             }
+            else if(e.Button == MouseButtons.Middle)
+            {
+                mea = e;
+                for (int i = 0; i < tabview.TabCount; ++i)
+                {
+                    if (tabview.GetTabRect(i).Contains(mea.Location))
+                    {
+                        (tabview.Controls[i] as TabPage).Dispose();
+                    }
+                }
+            }
         }
 
         #endregion Tab View Handlers
