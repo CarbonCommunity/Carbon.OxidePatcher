@@ -1,4 +1,3 @@
-using ICSharpCode.Decompiler;
 using Mono.Cecil;
 using Mono.Cecil.Cil;
 using Oxide.Patcher.Patching;
@@ -7,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Oxide.Patcher.Common;
+using Oxide.Patcher.Common.Extensions;
+
 using AssemblyDefinition = Mono.Cecil.AssemblyDefinition;
 using TypeDefinition = Mono.Cecil.TypeDefinition;
 
@@ -729,8 +730,12 @@ namespace Oxide.Patcher.Hooks
 
                 if (currentArg.BaseType != null && originalMethod.Module.Assembly != currentArg.BaseType.Module.Assembly)
                 {
+                    string targetDirectory = patcher?.PatchProject.TargetDirectory
+                                             ?? PatcherForm.MainForm?.CurrentProject?.TargetDirectory
+                                             ?? Docs.DocsGenerator.TargetDirectory;
+
                     TypeReference baseType = currentArg.BaseType;
-                    AssemblyDefinition baseTypeAssembly = AssemblyDefinition.ReadAssembly($"{(patcher != null ? patcher.PatchProject.TargetDirectory : PatcherForm.MainForm.CurrentProject.TargetDirectory)}\\{baseType.Scope.Name}{(baseType.Scope.Name.EndsWith(".dll") ? "" : ".dll")}");
+                    AssemblyDefinition baseTypeAssembly = AssemblyDefinition.ReadAssembly($"{targetDirectory}\\{baseType.Scope.Name}{(baseType.Scope.Name.EndsWith(".dll") ? "" : ".dll")}");
                     currentArg = baseTypeAssembly.MainModule.Types.Single(x => x.FullName == baseType.FullName);
                 }
                 else

@@ -28,6 +28,10 @@ namespace Oxide.Patcher.Hooks
             public OpType OpType { get; set; }
 
             public object Operand { get; set; }
+
+            [JsonProperty(DefaultValueHandling = DefaultValueHandling.Ignore)]
+            public bool ReferencesNewInstruction { get; set; }
+
             public override string ToString()
             {
                 return $"{OpCode} {Operand}";
@@ -49,7 +53,13 @@ namespace Oxide.Patcher.Hooks
             List<Instruction> insts = new List<Instruction>();
             Dictionary<Instruction, int> lateInsts = new Dictionary<Instruction, int>();
 
-            Instruction previousInstruction = InjectionIndex > 0 ? weaver.Instructions[InjectionIndex - 1] : null;
+            Instruction previousInstruction = null;
+            try
+            {
+                if (InjectionIndex > 0)
+                    previousInstruction = weaver.Instructions[InjectionIndex - 1];
+            }
+            catch (ArgumentOutOfRangeException) { }
             for (var i = 0; i < Instructions.Count; i++)
             {
                 InstructionData instructionData = Instructions[i];
@@ -256,12 +266,12 @@ namespace Oxide.Patcher.Hooks
 
                 case OpType.Instruction:
                     int index = Convert.ToInt32(instructionData.Operand);
-                    if(index < 1024)
+                    if(!instructionData.ReferencesNewInstruction)
                         Instruction = Instruction.Create(opcode, weaver.Instructions[index]);
-                    else // We cannot not reference future instructions right here.
+                    else // We cannot reference newly-injected instructions right here.
                     {
                         Instruction = Instruction.Create(opcode, Instruction.Create(OpCodes.Nop)); // dummy
-                        lateInsts.Add(Instruction, index - 1024); // bind to correct place later
+                        lateInsts.Add(Instruction, index); // bind to correct place later
                     }
                     break;
 

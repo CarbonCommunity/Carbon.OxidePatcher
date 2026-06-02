@@ -146,7 +146,17 @@ namespace Oxide.Patcher
             Settings.WindowState = WindowState;
             Settings.Save();
 
-            Process.GetCurrentProcess().Kill();
+            base.OnFormClosing(e);
+            if (e.Cancel) return;
+
+            // TreeView.Dispose sends a WM_DELETEITEM per node through comctl32 synchronously, which
+            // dominates Form.Dispose for projects with thousands of nodes. Batch the removal under
+            // BeginUpdate/EndUpdate so comctl32 processes the entire clear in one repaint cycle.
+            objectview.BeginUpdate();
+            objectview.Nodes.Clear();
+            objectview.EndUpdate();
+
+            tabview.TabPages.Clear();
         }
 
         #region Menu Handlers
@@ -200,7 +210,7 @@ namespace Oxide.Patcher
         /// <param name="e"></param>
         private void exit_Click(object sender, EventArgs e)
         {
-            OnFormClosing(null);
+            Application.Exit();
         }
 
         #endregion Menu Handlers
@@ -410,6 +420,13 @@ namespace Oxide.Patcher
                 objectview.SelectedNode.ImageKey = "accept.png";
                 objectview.SelectedNode.SelectedImageKey = "accept.png";
                 objectview.SelectedNode.Nodes.Clear();
+
+                string realfilename = Path.Combine(CurrentProject.TargetDirectory, data.AssemblyName);
+                string origfilename = Path.Combine(CurrentProject.TargetDirectory, Path.GetFileNameWithoutExtension(data.AssemblyName) + "_Original" + Path.GetExtension(data.AssemblyName));
+                if (!File.Exists(origfilename))
+                {
+                    AssemblyLoader.CreateOriginal(realfilename, origfilename);
+                }
 
                 // Populate
                 PopulateAssemblyNode(objectview.SelectedNode, data.Definition);
@@ -834,17 +851,6 @@ namespace Oxide.Patcher
                 mea = e;
                 tabviewcontextmenu.Show(tabview, e.Location);
             }
-            else if(e.Button == MouseButtons.Middle)
-            {
-                mea = e;
-                for (int i = 0; i < tabview.TabCount; ++i)
-                {
-                    if (tabview.GetTabRect(i).Contains(mea.Location))
-                    {
-                        (tabview.Controls[i] as TabPage).Dispose();
-                    }
-                }
-            }
         }
 
         #endregion Tab View Handlers
@@ -856,7 +862,14 @@ namespace Oxide.Patcher
 
         private bool IsFileOriginal(string filename)
         {
-            return true;
+            string name = Path.GetFileNameWithoutExtension(filename);
+            const string postfix = "_Original";
+            if (name.Length <= postfix.Length)
+            {
+                return false;
+            }
+
+            return name.Substring(name.Length - postfix.Length) == postfix;
         }
 
         #region -Hooks Tree-
