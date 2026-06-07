@@ -26,7 +26,6 @@ namespace Oxide.Patcher
         {
             public object Value { get; set; }
             public string Text { get; set; }
-            public bool IsNewInstruction { get; set; }
         }
 
         public ModifyForm(Modify hook, MethodDefinition method)
@@ -142,7 +141,7 @@ namespace Oxide.Patcher
                     for (int i = 0; i < hook.Instructions.Count; i++)
                     {
                         Modify.InstructionData instructionData = hook.Instructions[i];
-                        instructions.Add(new ListData { Text = $"(new {i}) {instructionData.OpCode} {instructionData.Operand}", Value = i, IsNewInstruction = true });
+                        instructions.Add(new ListData { Text = $"({i + 1024}) {instructionData.OpCode} {instructionData.Operand}", Value = i + 1024 });
                     }
                     comboBox.DataSource = instructions;
                     control = comboBox;
@@ -187,7 +186,7 @@ namespace Oxide.Patcher
             }
             if (control is ComboBox && Instruction?.Operand != null)
             {
-                comboBox.SelectedItem = ((List<ListData>)comboBox.DataSource).FirstOrDefault(i => Convert.ToInt32(i.Value) == Convert.ToInt32(Instruction.Operand) && i.IsNewInstruction == Instruction.ReferencesNewInstruction);
+                comboBox.SelectedItem = ((List<ListData>)comboBox.DataSource).FirstOrDefault(i => Convert.ToInt32(i.Value) == Convert.ToInt32(Instruction.Operand));
             }
         }
 
@@ -252,7 +251,6 @@ namespace Oxide.Patcher
                 case Modify.OpType.Variable:
                 case Modify.OpType.Parameter:
                     Instruction.Operand = Convert.ToInt32(((ListData)comboBox.SelectedItem).Value);
-                    Instruction.ReferencesNewInstruction = ((ListData)comboBox.SelectedItem).IsNewInstruction;
                     break;
 
                 case Modify.OpType.Field:

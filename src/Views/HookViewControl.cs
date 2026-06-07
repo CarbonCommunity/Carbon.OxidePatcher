@@ -34,9 +34,6 @@ namespace Oxide.Patcher.Views
         private TextEditorControl _msilBefore, _msilAfter, _codeBefore, _codeAfter;
 
         private MethodDefinition _methodDef;
-        private MethodDefinition _methodDefAfter;
-        private AssemblyLoader _viewLoader;
-        private AssemblyLoader _viewLoaderAfter;
 
         private bool _loaded;
 
@@ -53,13 +50,7 @@ namespace Oxide.Patcher.Views
         {
             base.OnLoad(e);
 
-            _viewLoader = new AssemblyLoader(MainForm.CurrentProject, string.Empty, deferLoading: true);
-            _viewLoader.LoadAssembly(Hook.AssemblyName);
-            _methodDef = _viewLoader.GetMethod(Hook.AssemblyName, Hook.TypeName, Hook.Signature);
-
-            _viewLoaderAfter = new AssemblyLoader(MainForm.CurrentProject, string.Empty, deferLoading: true);
-            _viewLoaderAfter.LoadAssembly(Hook.AssemblyName);
-            _methodDefAfter = _viewLoaderAfter.GetMethod(Hook.AssemblyName, Hook.TypeName, Hook.Signature);
+            _methodDef = MainForm.AssemblyLoader.GetMethod(Hook.AssemblyName, Hook.TypeName, Hook.Signature);
 
             InitialiseDropdowns();
 
@@ -152,90 +143,123 @@ namespace Oxide.Patcher.Views
         {
             if (_methodDef == null)
             {
-                beforetab.Controls.Add(new Label
+                var missingLabel = new Label
                 {
                     Dock = DockStyle.Fill,
                     AutoSize = false,
                     Text = "METHOD MISSING",
                     TextAlign = ContentAlignment.MiddleCenter
-                });
-
-                aftertab.Controls.Add(new Label
-                {
-                    Dock = DockStyle.Fill,
-                    AutoSize = false,
-                    Text = "METHOD MISSING",
-                    TextAlign = ContentAlignment.MiddleCenter
-                });
+                };
+                beforesplit.Panel1.Controls.Add(missingLabel);
+                beforesplit.Panel2.Controls.Add(missingLabel);
+                aftersplit.Panel1.Controls.Add(missingLabel);
+                aftersplit.Panel2.Controls.Add(missingLabel);
 
                 _loaded = true;
                 return;
             }
 
-            (string msilBefore, string msilAfter, bool patchApplied, Task<string> beforeTask, Task<string> afterTask) = BuildBeforeAfter();
+            ILWeaver weaver = new ILWeaver(_methodDef.Body) { Module = _methodDef.Module };
 
-            _msilBefore = new TextEditorControl { Dock = DockStyle.Fill, Text = msilBefore, IsReadOnly = true };
-            beforetab.Controls.Add(_msilBefore);
+            Hook.PreparePatch(_methodDef, weaver);
 
-            _msilAfter = new TextEditorControl { Dock = DockStyle.Fill, Text = msilAfter, IsReadOnly = true };
-            aftertab.Controls.Add(_msilAfter);
-            _msilHighlight = new HighlightGroup(_msilAfter);
-            if (patchApplied)
-            {
-                AddHighlight(msilAfter);
-            }
-
+            _msilBefore = new TextEditorControl { Dock = DockStyle.Fill, Text = weaver.ToString(), IsReadOnly = true };
             _codeBefore = new TextEditorControl
             {
                 Dock = DockStyle.Fill,
-                Text = await beforeTask,
+                Text = await Decompiler.GetSourceCode(_methodDef, weaver),
                 Document = { HighlightingStrategy = HighlightingManager.Manager.FindHighlighter("C#") },
                 IsReadOnly = true
             };
-            codebeforetab.Controls.Add(_codeBefore);
 
+            Hook.ApplyPatch(_methodDef, weaver);
+
+            string msilAfterText = weaver.ToString();
+
+            _msilAfter = new TextEditorControl { Dock = DockStyle.Fill, Text = msilAfterText, IsReadOnly = true };
             _codeAfter = new TextEditorControl
             {
                 Dock = DockStyle.Fill,
-                Text = await afterTask,
+                Text = await Decompiler.GetSourceCode(_methodDef, weaver),
                 Document = { HighlightingStrategy = HighlightingManager.Manager.FindHighlighter("C#") },
                 IsReadOnly = true
             };
-            codeaftertab.Controls.Add(_codeAfter);
+
+            beforesplit.SplitterMoved += (sender, e) =>
+            {
+                try
+                {
+                    if (beforesplit.SplitterDistance != aftersplit.SplitterDistance)
+                    {
+                        aftersplit.SplitterDistance = beforesplit.SplitterDistance;
+                    }
+                }
+                catch { }
+            };
+            aftersplit.SplitterMoved += (sender, e) =>
+            {
+                try
+                {
+                    if (aftersplit.SplitterDistance != beforesplit.SplitterDistance)
+                    {
+                        beforesplit.SplitterDistance = aftersplit.SplitterDistance;
+                    }
+                }
+                catch { }
+            };
+
+            beforesplit.Panel1.Controls.Add(_msilBefore);
+            beforesplit.Panel2.Controls.Add(_codeBefore);
+            aftersplit.Panel1.Controls.Add(_msilAfter);
+            aftersplit.Panel2.Controls.Add(_codeAfter);
+
+            WireScrollSync(_msilBefore, _msilAfter);
+            WireScrollSync(_msilAfter, _msilBefore);
+            WireScrollSync(_codeBefore, _codeAfter);
+            WireScrollSync(_codeAfter, _codeBefore);
+
+            _msilHighlight = new HighlightGroup(_msilAfter);
+
+            AddMsilHighlight(msilAfterText);
         }
 
-        private (string msilBefore, string msilAfter, bool patchApplied, Task<string> beforeTask, Task<string> afterTask) BuildBeforeAfter()
+        private bool _syncing;
+
+        private void WireScrollSync(TextEditorControl source, TextEditorControl target)
         {
-            ILWeaver weaverBefore = new ILWeaver(_methodDef.Body) { Module = _methodDef.Module };
-            Hook.PreparePatch(_methodDef, weaverBefore);
-
-            ILWeaver weaverAfter = new ILWeaver(_methodDefAfter.Body) { Module = _methodDefAfter.Module };
-            Hook.PreparePatch(_methodDefAfter, weaverAfter);
-
-            bool patchApplied;
-            try
+            source.ActiveTextAreaControl.VScrollBar.ValueChanged += (s, e) =>
             {
-                patchApplied = Hook.ApplyPatch(_methodDefAfter, weaverAfter);
-            }
-            catch (Exception ex)
-            {
-                patchApplied = false;
-                System.Diagnostics.Debug.WriteLine($"ApplyPatch threw: {ex}");
-            }
+                if (_syncing)
+                {
+                    return;
+                }
+                _syncing = true;
+                try
+                {
+                    var sv = source.ActiveTextAreaControl.VScrollBar;
+                    var tv = target.ActiveTextAreaControl.VScrollBar;
+                    var value = Math.Max(tv.Minimum, Math.Min(sv.Value, tv.Maximum - tv.LargeChange + 1));
 
-            string msilAfter = patchApplied ? weaverAfter.ToString() : $"Failed to apply patch for '{Hook.Name}'.";
+                    if (value > tv.Maximum)
+                    {
+                        value = tv.Maximum;
+                    }
+                    if (value < tv.Minimum)
+                    {
+                        value = tv.Minimum;
+                    }
 
-            Task<string> beforeTask = Hook.BaseHook == null
-                ? Decompiler.GetSourceCode(_methodDef)
-                : Decompiler.GetSourceCode(_methodDef, weaverBefore);
-            Task<string> afterTask = patchApplied
-                ? Decompiler.GetSourceCode(_methodDefAfter, weaverAfter)
-                : Task.FromResult(msilAfter);
-
-            return (weaverBefore.ToString(), msilAfter, patchApplied, beforeTask, afterTask);
+                    tv.Value = value;
+                    target.ActiveTextAreaControl.TextArea.Invalidate();
+                }
+                finally
+                {
+                    _syncing = false;
+                }
+            };
         }
 
-        private void AddHighlight(string afterText)
+        private void AddMsilHighlight(string afterText)
         {
             int searchIndex = afterText.IndexOf($"\"{Hook.HookName}\"");
             if (searchIndex == -1)
@@ -367,17 +391,20 @@ namespace Oxide.Patcher.Views
 
             if (_msilBefore != null && _msilAfter != null)
             {
-                (string msilBefore, string msilAfter, bool patchApplied, Task<string> beforeTask, Task<string> afterTask) = BuildBeforeAfter();
+                ILWeaver weaver = new ILWeaver(_methodDef.Body) { Module = _methodDef.Module };
 
-                _msilBefore.Text = msilBefore;
-                _msilAfter.Text = msilAfter;
-                if (patchApplied)
-                {
-                    AddHighlight(msilAfter);
-                }
+                Hook.PreparePatch(_methodDef, weaver);
+                _msilBefore.Text = weaver.ToString();
+                _codeBefore.Text = await Decompiler.GetSourceCode(_methodDef, weaver);
 
-                _codeBefore.Text = await beforeTask;
-                _codeAfter.Text = await afterTask;
+                Hook.ApplyPatch(_methodDef, weaver);
+
+                string afterText = weaver.ToString();
+
+                _msilAfter.Text = afterText;
+                _codeAfter.Text = await Decompiler.GetSourceCode(_methodDef, weaver);
+
+                AddMsilHighlight(afterText);
             }
 
             applybutton.Enabled = false;

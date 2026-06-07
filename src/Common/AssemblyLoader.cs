@@ -23,7 +23,7 @@ namespace Oxide.Patcher.Common
 
         private IAssemblyResolver _resolver;
 
-        public AssemblyLoader(Project project, string opjPath, bool skipOriginal = false, bool deferLoading = false)
+        public AssemblyLoader(Project project, string opjPath, bool skipOriginal = true)
         {
             _project = project;
             _opjPath = opjPath;
@@ -34,7 +34,7 @@ namespace Oxide.Patcher.Common
             assemblydict = new Dictionary<string, AssemblyDefinition>();
             rassemblydict = new Dictionary<AssemblyDefinition, string>();
 
-            if (!deferLoading) LoadAssemblies();
+            LoadAssemblies();
         }
 
         internal void LoadAssemblies()
@@ -193,19 +193,7 @@ namespace Oxide.Patcher.Common
                 return assdef;
             }
 
-            string file = $"{Path.GetFileNameWithoutExtension(name)}_Original{Path.GetExtension(name)}";
-            string filename = Path.Combine(_project.TargetDirectory, file);
-            if (!File.Exists(filename))
-            {
-                string oldfilename = Path.Combine(_project.TargetDirectory, name);
-                if (!File.Exists(oldfilename))
-                {
-                    return null;
-                }
-
-                filename = CreateOriginal(oldfilename, filename);
-            }
-            assdef = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(filename)), new ReaderParameters { AssemblyResolver = _resolver });
+            assdef = AssemblyDefinition.ReadAssembly(Path.Combine(_project.TargetDirectory, name), new ReaderParameters { AssemblyResolver = _resolver });
             assemblydict.Add(name, assdef);
             rassemblydict.Add(assdef, name);
             return assdef;
@@ -218,7 +206,7 @@ namespace Oxide.Patcher.Common
                 return oldfile;
             }
 
-            AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(new MemoryStream(File.ReadAllBytes(oldfile)), new ReaderParameters { AssemblyResolver = _resolver });
+            AssemblyDefinition assembly = AssemblyDefinition.ReadAssembly(oldfile, new ReaderParameters { AssemblyResolver = _resolver });
             Deobfuscator deob = Deobfuscators.Find(assembly);
             if (deob != null)
             {

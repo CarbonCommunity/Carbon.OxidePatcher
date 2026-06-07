@@ -38,10 +38,6 @@ namespace Oxide.Patcher
 
                 using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
                 {
-                    if (stream == null)
-                    {
-                        return null;
-                    }
                     byte[] assemblyData = new byte[stream.Length];
                     stream.Read(assemblyData, 0, assemblyData.Length);
                     return Assembly.Load(assemblyData);
