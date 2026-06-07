@@ -9,6 +9,7 @@ using System.Threading;
 using System.Windows.Forms;
 using Mono.Cecil;
 using Oxide.Patcher.Common;
+using System.Collections.Generic;
 
 namespace Oxide.Patcher
 {
@@ -29,7 +30,7 @@ namespace Oxide.Patcher
             AppDomain.CurrentDomain.AssemblyResolve += (sender, args1) =>
             {
                 string resourceName = $"Oxide.Patcher.Dependencies.{new AssemblyName(args1.Name).Name}.dll";
-                if (resourceName.Contains("resources.dll"))
+                if (resourceName.Contains("resources.dll") || resourceName.Contains("Unsafe"))
                 {
                     return null;
                 }

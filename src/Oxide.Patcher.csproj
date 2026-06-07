@@ -18,6 +18,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <UseWindowsForms>true</UseWindowsForms>
+    <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="ICSharpCode.Decompiler">
@@ -31,15 +32,6 @@
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>Dependencies\NewtonsoftJson.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Immutable">
-      <HintPath>Dependencies\System.Collections.Immutable.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Reflection.Metadata">
-      <HintPath>Dependencies\System.Reflection.Metadata.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Runtime.CompilerServices.Unsafe">
-      <HintPath>Dependencies\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
     </Reference>
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
@@ -210,19 +202,10 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="dnlib" Version="4.5.0" />
+    <PackageReference Include="ICSharpCode.NRefactory" Version="5.5.1" />
     <PackageReference Include="System.Resources.Extensions" Version="6.0.0" />
   </ItemGroup>
   <Import Project="Sdk.targets" Sdk="Microsoft.NET.Sdk" />
-  <Target Name="EmbedCopyLocalReferences" BeforeTargets="CoreCompile" DependsOnTargets="ResolveAssemblyReferences">
-    <ItemGroup>
-      <_CoreCompileResourceInputs Include="@(ReferenceCopyLocalPaths)" Condition="'%(ReferenceCopyLocalPaths.Extension)' == '.dll'">
-        <LogicalName>Oxide.Patcher.Dependencies.%(ReferenceCopyLocalPaths.Filename).dll</LogicalName>
-        <WithCulture>false</WithCulture>
-        <Type>Non-Resx</Type>
-      </_CoreCompileResourceInputs>
-    </ItemGroup>
-  </Target>
   <Target Name="LocalDeploy" AfterTargets="AfterBuild" Condition="Exists('$(SolutionDir).deploy')">
     <ReadLinesFromFile File="$(SolutionDir).deploy">
       <Output PropertyName="DeployPath" TaskParameter="Lines" />
