@@ -14,7 +14,6 @@ using Mono.Cecil;
 using Oxide.Patcher.Common;
 using Oxide.Patcher.Common.Extensions;
 using Oxide.Patcher.Deobfuscation;
-using Oxide.Patcher.Docs;
 using Oxide.Patcher.Fields;
 using Oxide.Patcher.Hooks;
 using Oxide.Patcher.Modifiers;
@@ -273,7 +272,6 @@ namespace Oxide.Patcher
                     return;
                 }
 
-                _docsWorker = Task.Run(() => DocsGenerator.GenerateFile(CurrentProject, AssemblyLoader));
             }
             catch (Exception ex)
             {

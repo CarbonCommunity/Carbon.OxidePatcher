@@ -9,8 +9,6 @@ using System.Threading;
 using System.Windows.Forms;
 using Mono.Cecil;
 using Oxide.Patcher.Common;
-using Oxide.Patcher.Docs;
-using System.Collections.Generic;
 
 namespace Oxide.Patcher
 {
@@ -38,6 +36,10 @@ namespace Oxide.Patcher
 
                 using (Stream stream = Assembly.GetExecutingAssembly().GetManifestResourceStream(resourceName))
                 {
+                    if (stream == null)
+                    {
+                        return null;
+                    }
                     byte[] assemblyData = new byte[stream.Length];
                     stream.Read(assemblyData, 0, assemblyData.Length);
                     return Assembly.Load(assemblyData);
@@ -239,7 +241,6 @@ namespace Oxide.Patcher
                 try
                 {
                     Console.WriteLine("Generating docs data file...");
-                    DocsGenerator.GenerateFile(PatchProject, assemblyLoader, docsOutputFile);
                     Console.WriteLine("Docs data file generated.");
                 }
                 catch (Exception e)
